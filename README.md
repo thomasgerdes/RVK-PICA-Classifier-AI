@@ -1,10 +1,3 @@
-Gerne\! Basierend auf deinen Vorlagen, dem Blogpost und dem Kontext deines RVK-PICA-Classifier-AI-Projekts gestalte ich eine `README.md`-Datei, die klar hervorhebt, dass es sich um ein Projekt im Entstehen handelt und AI als Werkzeug genutzt wird.
-
-Hier ist der Entwurf für deine `README.md`-Datei:
-
------
-
-````markdown
 # RVK-PICA-Classifier-AI
 
 ## Overview
