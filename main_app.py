@@ -1,7 +1,7 @@
 """
 main_app.py
 Main Streamlit Application
-Part 3/3 of RVK-PICA Classifier AI v1.0
+Part 3/3 of RVK-PICA Classifier AI v1.1
 """
 
 import streamlit as st
@@ -25,68 +25,125 @@ st.set_page_config(
     page_title="RVK-PICA Classifier AI",
     page_icon="🚀",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
+    menu_items={
+        'Get Help': None,
+        'Report a bug': None,
+        'About': None
+    }
 )
 
-# Custom CSS for better appearance
+# Custom CSS for modern, clean design
 st.markdown("""
 <style>
+    /* Main layout */
     .main-header {
         text-align: center;
-        color: #2c3e50;
-        margin-bottom: 2rem;
+        color: #1a1a1a;
+        margin-bottom: 3rem;
+        font-weight: 300;
     }
+    
+    /* Modern card design */
     .analysis-box {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        padding: 1rem;
-        border-radius: 10px;
-        color: white;
-        margin: 1rem 0;
-    }
-    .suggestion-card {
-        border: 2px solid #3498db;
-        border-radius: 10px;
-        padding: 1rem;
-        margin: 0.5rem 0;
         background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin: 1.5rem 0;
     }
+    
+    .suggestion-card {
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 1rem;
+        margin: 0.75rem 0;
+        background: #ffffff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    /* Status indicators */
     .api-status {
-        padding: 0.5rem;
-        border-radius: 5px;
-        margin: 0.2rem;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        margin: 0.25rem;
         display: inline-block;
+        font-size: 0.9rem;
+        font-weight: 500;
     }
-    .api-active { background: #d4edda; color: #155724; }
-    .api-inactive { background: #f8d7da; color: #721c24; }
-    .semantic-highlight { 
-        background: linear-gradient(45deg, #e3f2fd, #f3e5f5);
-        border-left: 4px solid #2196f3;
-        padding: 0.5rem;
+    .api-active { 
+        background: #d1f2d1; 
+        color: #0d5016; 
+        border: 1px solid #c3e6c3;
     }
-    .prefix-highlight {
-        background: linear-gradient(45deg, #ffe0b2, #fff3e0);
-        border-left: 4px solid #ff9800;
-        padding: 0.5rem;
+    .api-inactive { 
+        background: #f8d7da; 
+        color: #721c24; 
+        border: 1px solid #f1aeb5;
     }
-    .hierarchy-highlight {
-        background: linear-gradient(45deg, #e8f5e8, #f0f8f0);
-        border-left: 4px solid #4caf50;
-        padding: 0.5rem;
-    }
-    .success-message { 
-        background: #d4edda; 
-        color: #155724; 
-        padding: 0.5rem; 
-        border-radius: 5px; 
-        margin: 0.5rem 0; 
-    }
+    
+    /* Results cards */
     .verified-notation {
-        border-left: 4px solid #28a745;
-        background: #f8fff9;
+        border-left: 3px solid #6c757d;
+        background: #ffffff;
+        margin: 0.5rem 0;
     }
     .hauptgruppe-match {
-        border-left: 4px solid #007bff;
-        background: #e7f1ff;
+        border-left: 3px solid #495057;
+        background: #f8f9fa;
+        margin: 0.5rem 0;
+    }
+    
+    /* Compact design */
+    .result-header {
+        margin-bottom: 0.5rem;
+    }
+    .result-details {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin: 0.25rem 0;
+    }
+    
+    /* Typography */
+    .metric-container {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 6px;
+        margin: 0.5rem 0;
+        border: 1px solid #e9ecef;
+    }
+    
+    /* Compact sidebar */
+    .sidebar-section {
+        margin-bottom: 1rem;
+    }
+    
+    /* Buttons */
+    .stButton > button {
+        border-radius: 4px;
+        border: 1px solid #dee2e6;
+        font-weight: 500;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    /* Primary button less dominant */
+    .stButton > button[kind="primary"] {
+        background-color: #495057;
+        border-color: #495057;
+    }
+    
+    /* Reduce visual noise */
+    .stAlert {
+        border-radius: 4px;
+    }
+    
+    /* Clean footer */
+    .footer-clean {
+        text-align: center;
+        color: #6c757d;
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid #e9ecef;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -295,84 +352,101 @@ Respond only with valid JSON without additional text or conversational elements.
                     other_matches.append(suggestion)
             
             if hauptgruppe_matches:
-                st.markdown("#### 🎯 **Priority Matches (Hauptgruppe Context)**")
-                st.info("These results primarily match the identified main subject areas (Hauptgruppen) from your content analysis, prioritized by regional context.")
+                st.markdown("#### Priority Matches")
                 
                 for i, suggestion in enumerate(hauptgruppe_matches):
                     with st.container():
                         relevance = suggestion.get('relevance', 0)
                         
-                        card_class = "hauptgruppe-match"
-                        
-                        hierarchical_display = self.format_hierarchical_display(suggestion)
-                        
                         st.markdown(f"""
-                        <div class="{card_class}">
-                            <h4>{suggestion['notation']} - {suggestion['benennung']}</h4>
-                            <p><strong>🎯 Relevance:</strong> {relevance}% 
-                                <strong>📊 RVK Level:</strong> {suggestion.get('rvk_hierarchy_level', 'Unknown')}</p>
-                            <p><strong>🔍 Search Strategy:</strong> {suggestion.get('search_strategy', 'Standard')}</p>
-                            <p><strong>💡 Logic:</strong> {suggestion.get('reasoning', 'N/A')}</p>
+                        <div class="hauptgruppe-match">
+                            <div class="result-header">
+                                <h4 style="margin: 0;">{suggestion['notation']} - {suggestion['benennung']}</h4>
+                            </div>
+                            <div class="result-details">
+                                <strong>Relevance:</strong> {relevance}% | <strong>Level:</strong> {suggestion.get('rvk_hierarchy_level', 'Unknown')}
+                            </div>
                         </div>
                         """, unsafe_allow_html=True)
                         
-                        if hierarchical_display:
-                            st.markdown(f"**📂 Complete RVK Hierarchy:**")
-                            st.code(hierarchical_display, language='text')
+                        # Technical details in expander
+                        with st.expander("Details", expanded=False):
+                            st.write(f"**Search Strategy:** {suggestion.get('search_strategy', 'Standard')}")
+                            st.write(f"**Logic:** {suggestion.get('reasoning', 'N/A')}")
+                            
+                            hierarchical_display = self.format_hierarchical_display(suggestion)
+                            if hierarchical_display:
+                                st.write("**RVK Hierarchy:**")
+                                # Shorten long hierarchy paths
+                                if len(hierarchical_display) > 200:
+                                    parts = hierarchical_display.split(" → ")
+                                    if len(parts) > 3:
+                                        shortened = f"{parts[0]} → ... → {parts[-2]} → {parts[-1]}"
+                                        st.code(shortened, language='text')
+                                    else:
+                                        st.code(hierarchical_display, language='text')
+                                else:
+                                    st.code(hierarchical_display, language='text')
                         
                         col_a, col_b = st.columns(2)
                         with col_a:
-                            if st.button(f"📋 Copy {suggestion['notation']}", key=f"copy_priority_{i}"):
+                            if st.button(f"Copy {suggestion['notation']}", key=f"copy_priority_{i}"):
                                 st.code(suggestion['notation'])
-                                st.info(f"Notation {suggestion['notation']} copied!")
                         with col_b:
-                            st.markdown(f"[🔗 RVK Online](https://rvk.uni-regensburg.de/regensburger-verbundklassifikation-online#notation={suggestion['notation']})", unsafe_allow_html=True)
-                        
-                        st.markdown("---")
+                            encoded_notation = requests.utils.quote(suggestion['notation'])
+                            st.markdown(f"[RVK Online](https://rvk.uni-regensburg.de/regensburger-verbundklassifikation-online#notation/{encoded_notation})")
             
             if other_matches:
-                st.markdown("#### 📚 **Additional Matches**")
-                st.info("These are other relevant suggestions, not directly aligned with a primary Hauptgruppe match or less prioritized.")
+                st.markdown("#### Additional Matches")
                 
                 for i, suggestion in enumerate(other_matches):
                     with st.container():
                         relevance = suggestion.get('relevance', 0)
                         
-                        card_class = "verified-notation"
-                        
-                        hierarchical_display = self.format_hierarchical_display(suggestion)
-                        
                         st.markdown(f"""
-                        <div class="{card_class}">
-                            <h4>{suggestion['notation']} - {suggestion['benennung']}</h4>
-                            <p><strong>🎯 Relevance:</strong> {relevance}% 
-                                <strong>📊 RVK Level:</strong> {suggestion.get('rvk_hierarchy_level', 'Unknown')}</p>
-                            <p><strong>🔍 Search Strategy:</strong> {suggestion.get('search_strategy', 'Standard')}</p>
+                        <div class="verified-notation">
+                            <div class="result-header">
+                                <h4 style="margin: 0;">{suggestion['notation']} - {suggestion['benennung']}</h4>
+                            </div>
+                            <div class="result-details">
+                                <strong>Relevance:</strong> {relevance}% | <strong>Level:</strong> {suggestion.get('rvk_hierarchy_level', 'Unknown')}
+                            </div>
                         </div>
                         """, unsafe_allow_html=True)
                         
-                        if hierarchical_display:
-                            st.markdown(f"**📂 Complete RVK Hierarchy:**")
-                            st.code(hierarchical_display, language='text')
+                        # Technical details in expander
+                        with st.expander("Details", expanded=False):
+                            st.write(f"**Search Strategy:** {suggestion.get('search_strategy', 'Standard')}")
+                            
+                            hierarchical_display = self.format_hierarchical_display(suggestion)
+                            if hierarchical_display:
+                                st.write("**RVK Hierarchy:**")
+                                # Shorten long hierarchy paths
+                                if len(hierarchical_display) > 200:
+                                    parts = hierarchical_display.split(" → ")
+                                    if len(parts) > 3:
+                                        shortened = f"{parts[0]} → ... → {parts[-2]} → {parts[-1]}"
+                                        st.code(shortened, language='text')
+                                    else:
+                                        st.code(hierarchical_display, language='text')
+                                else:
+                                    st.code(hierarchical_display, language='text')
                         
                         col_a, col_b = st.columns(2)
                         with col_a:
-                            if st.button(f"📋 Copy {suggestion['notation']}", key=f"copy_other_{i}"):
+                            if st.button(f"Copy {suggestion['notation']}", key=f"copy_other_{i}"):
                                 st.code(suggestion['notation'])
-                                st.info(f"Notation {suggestion['notation']} copied!")
                         with col_b:
-                            st.markdown(f"[🔗 RVK Online](https://rvk.uni-regensburg.de/regensburger-verbundklassifikation-online#notation={suggestion['notation']})", unsafe_allow_html=True)
-                        
-                        st.markdown("---")
+                            encoded_notation = requests.utils.quote(suggestion['notation'])
+                            st.markdown(f"[RVK Online](https://rvk.uni-regensburg.de/regensburger-verbundklassifikation-online#notation/{encoded_notation})")
             
             if 'rvk_combinations_used' in results and results['rvk_combinations_used']:
-                with st.expander("🏗️ RVK Structure Analysis Details"):
-                    st.write("**Detected RVK Combinations:**")
+                with st.expander("RVK Structure Analysis", expanded=False):
                     for combo_type, combinations in results['rvk_combinations_used'].items():
                         if combinations:
-                            st.write(f"**{combo_type.replace('_', ' ').title()}:**")
-                            for combo in combinations[:5]:
-                                st.write(f"- {combo}")
+                            st.write(f"**{combo_type.replace('_', ' ').title()}:** {', '.join(combinations[:3])}")
+                            if len(combinations) > 3:
+                                st.write(f"... and {len(combinations) - 3} more")
 
     def format_hierarchical_display(self, suggestion: Dict) -> str:
         """
@@ -408,143 +482,111 @@ def main():
     
     classifier = RVKClassifierAI()
 
-    # --- HINZUGEFÜGTE INITIALISIERUNG FÜR SESSION_STATE-KEYS ---
-    # Initialisiere die Session State Keys basierend auf der Konfiguration.
-    # Dies stellt sicher, dass sie existieren, bevor die Checkboxen sie referenzieren.
-    # Wichtig: Diese Initialisierung muss vor dem ersten Aufruf von st.checkbox erfolgen.
+    # Initialize Session State keys based on configuration
+    # This ensures they exist before checkboxes reference them
+    # Important: This initialization must occur before the first st.checkbox call
     if 'openai_enabled_checkbox' not in st.session_state:
         st.session_state.openai_enabled_checkbox = st.session_state.config['openai']['enabled']
     if 'rvk_enabled_checkbox' not in st.session_state:
         st.session_state.rvk_enabled_checkbox = st.session_state.config['rvk']['enabled']
-    # --- ENDE HINZUGEFÜGTE INITIALISIERUNG ---
 
     def update_openai_enabled():
-        # Aktualisiere den Konfigurationswert direkt aus dem Wert der Checkbox im session_state
+        # Update config value directly from checkbox value in session_state
         st.session_state.config['openai']['enabled'] = st.session_state.openai_enabled_checkbox
 
     def update_rvk_enabled():
-        # Aktualisiere den Konfigurationswert direkt aus dem Wert der Checkbox im session_state
+        # Update config value directly from checkbox value in session_state
         st.session_state.config['rvk']['enabled'] = st.session_state.rvk_enabled_checkbox
     
     st.markdown("""
     <div class="main-header">
-        <h1>🚀 RVK-PICA Classifier AI</h1>
-        <p>Intelligent PICA Analysis with RVK Hierarchical Understanding v1.0</p>
+        <h1>RVK-PICA Classifier AI</h1>
+        <p>Intelligent PICA Analysis with RVK Hierarchical Understanding v1.1</p>
     </div>
     """, unsafe_allow_html=True)
     
     with st.sidebar:
-        st.header("⚙️ API Configuration")
+        st.header("Configuration")
         
-        st.subheader("🤖 OpenAI API")
-        # Hier wird der 'value'-Parameter der Checkbox *nicht* gesetzt,
-        # da der Startwert bereits durch die Initialisierung des Keys in session_state gegeben ist.
-        # Streamlit liest den Wert automatisch aus st.session_state.openai_enabled_checkbox.
-        st.checkbox(
-            "Enable OpenAI", 
-            key="openai_enabled_checkbox", # Der Key ist jetzt die primäre Quelle für den Widget-Zustand
-            on_change=update_openai_enabled # Der Callback synchronisiert Änderungen mit dem config-Dict
-        )
-        # Die Variable 'openai_enabled' wird jetzt direkt aus dem Konfigurations-Dict gelesen,
-        # das durch den Callback aktuell gehalten wird.
+        # OpenAI Section
+        st.checkbox("Enable OpenAI", key="openai_enabled_checkbox", on_change=update_openai_enabled)
         openai_enabled = st.session_state.config['openai']['enabled'] 
         
         if openai_enabled:
-            openai_key = st.text_input(
-                "API Key", 
-                type="password",
-                value=st.session_state.config['openai']['api_key'],
-                key="openai_key",
-                help="Your OpenAI API key (stored securely on your local machine)"
-            )
+            st.text_input("API Key", type="password", value=st.session_state.config['openai']['api_key'], key="openai_key")
+            st.selectbox("Model", ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo', 'gpt-4o'], 
+                        index=['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo', 'gpt-4o'].index(st.session_state.config['openai']['model']) if st.session_state.config['openai']['model'] in ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo', 'gpt-4o'] else 0, key="openai_model")
             
-            openai_model = st.selectbox(
-                "Model",
-                ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo', 'gpt-4o'],
-                index=['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo', 'gpt-4o'].index(
-                    st.session_state.config['openai']['model']
-                ) if st.session_state.config['openai']['model'] in ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo', 'gpt-4o'] else 0,
-                key="openai_model"
-            )
-            
-            if st.button("🧪 Test OpenAI", key="test_openai"):
-                if openai_key:
-                    try:
-                        response = requests.get(
-                            f"{st.session_state.config['openai']['base_url']}/models",
-                            headers={'Authorization': f"Bearer {openai_key}"},
-                            timeout=10
-                        )
-                        if response.ok:
-                            st.success("✅ OpenAI API working!")
-                        else:
-                            st.error(f"❌ OpenAI API Error: {response.status_code} - {response.text}")
-                    except Exception as e:
-                        st.error(f"❌ OpenAI API unreachable: {e}")
-                else:
-                    st.warning("API key required")
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("Test", key="test_openai"):
+                    if st.session_state.get('openai_key'):
+                        try:
+                            response = requests.get(f"{st.session_state.config['openai']['base_url']}/models",
+                                                  headers={'Authorization': f"Bearer {st.session_state.openai_key}"}, timeout=10)
+                            if response.ok:
+                                st.success("✓ OK")
+                            else:
+                                st.error("✗ Error")
+                        except:
+                            st.error("✗ Failed")
+                    else:
+                        st.warning("Key required")
         
-        st.subheader("🔍 RVK API")
-        # Analog zur OpenAI-Checkbox: 'value' entfernt, Zustand über Key und Callback
-        st.checkbox(
-            "Enable RVK API", 
-            key="rvk_enabled_checkbox", # Der Key ist die primäre Quelle für den Widget-Zustand
-            on_change=update_rvk_enabled # Der Callback synchronisiert Änderungen mit dem config-Dict
-        )
-        # Variable 'rvk_enabled' direkt aus dem Konfigurations-Dict lesen.
+        st.markdown("---")
+        
+        # RVK Section  
+        st.checkbox("Enable RVK API", key="rvk_enabled_checkbox", on_change=update_rvk_enabled)
         rvk_enabled = st.session_state.config['rvk']['enabled'] 
         
         if rvk_enabled:
-            if st.button("🧪 Test RVK", key="test_rvk"):
+            if st.button("Test RVK", key="test_rvk"):
                 try:
-                    response = requests.get(
-                        f"{classifier.notation_validator.rvk_config['base_url']}/{classifier.notation_validator.rvk_config['format']}/nodes/informatik", 
-                        timeout=10
-                    )
+                    response = requests.get(f"{classifier.notation_validator.rvk_config['base_url']}/{classifier.notation_validator.rvk_config['format']}/nodes/informatik", timeout=10)
                     if response.ok and ET.fromstring(response.text).find('node') is not None:
-                        st.success("✅ RVK API working and delivering data!")
+                        st.success("✓ RVK OK")
                     else:
-                        st.error(f"❌ RVK API Error or no data for 'informatik': {response.status_code} - {response.text}")
-                except Exception as e:
-                    st.error(f"❌ RVK API unreachable: {e}")
+                        st.error("✗ RVK Error")
+                except:
+                    st.error("✗ RVK Failed")
         
-        if st.button("💾 Save Configuration", key="save_config"):
+        st.markdown("---")
+        
+        if st.button("Save Config", key="save_config"):
             if 'openai_key' in st.session_state:
                 st.session_state.config['openai']['api_key'] = st.session_state.openai_key
             if 'openai_model' in st.session_state:
                 st.session_state.config['openai']['model'] = st.session_state.openai_model
             
             if classifier.save_current_config():
-                st.markdown('<div class="success-message">✅ Configuration saved securely!</div>', unsafe_allow_html=True)
+                st.success("✓ Saved")
             else:
-                st.error("❌ Could not save configuration")
-        
-        st.markdown("---")
-        st.markdown("### 🔒 Security Information")
-        st.info("API keys are stored securely on your local machine and never uploaded to GitHub or shared.")
+                st.error("✗ Failed")
     
-    col1, col2 = st.columns([2, 1])
+    col1, col2 = st.columns([3, 1])
     
     with col1:
-        st.markdown("### 📊 API Status")
-        openai_status_text = "🟢 Active" if openai_enabled else "🔴 Inactive"
-        rvk_status_text = "🟢 Active" if rvk_enabled else "🔴 Inactive"
+        st.markdown("### API Status")
+        openai_status_text = "Active" if openai_enabled else "Inactive"
+        rvk_status_text = "Active" if rvk_enabled else "Inactive"
         
         st.markdown(f"""
-        <div style="display: flex; gap: 1rem;">
+        <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
             <span class="api-status {'api-active' if openai_enabled else 'api-inactive'}">
-                🤖 OpenAI: {openai_status_text}
+                OpenAI: {openai_status_text}
             </span>
             <span class="api-status {'api-active' if rvk_enabled else 'api-inactive'}">
-                🔍 RVK: {rvk_status_text}
+                RVK: {rvk_status_text}
             </span>
         </div>
         """, unsafe_allow_html=True)
         
-        st.markdown("### 📝 Enter PICA Data")
+        st.markdown("### Enter PICA Data")
         
-        if st.button("💡 Load Example", key="load_example"):
-            st.session_state.example_loaded = True
+        col_btn1, col_btn2 = st.columns([1, 3])
+        with col_btn1:
+            if st.button("Load Example", key="load_example"):
+                st.session_state.example_loaded = True
         
         example_data = """4000 $aMigration und Integration in Chemnitz: Eine sozialwissenschaftliche Analyse interkultureller Prozesse
 4002 $aLokale Dynamiken von Zuwanderung und gesellschaftlichem Wandel
@@ -560,63 +602,58 @@ def main():
         pica_data = st.text_area(
             "PICA Data:",
             value=example_data if st.session_state.get('example_loaded', False) else "",
-            height=300,
-            help="Enter PICA data in K10plus format here"
+            height=280,
+            help="Enter PICA data in K10plus format"
         )
         
-        if st.button("🚀 Start RVK Hierarchical Analysis", type="primary", key="analyze"):
+        if st.button("Start Analysis", type="primary", key="analyze"):
             st.session_state.example_loaded = False 
             if pica_data.strip():
-                with st.spinner("🤖 Analyzing PICA data with hierarchical RVK understanding..."):
+                with st.spinner("Analyzing..."):
                     try:
                         results = classifier.analyze_pica_data_with_rvk_hierarchy(pica_data)
                         st.session_state.results = results
-                        st.success("✅ RVK Hierarchical Analysis completed!")
+                        st.success("Analysis completed")
                     except Exception as e:
-                        st.error(f"❌ Analysis Error: {str(e)}")
+                        st.error(f"Error: {str(e)}")
             else:
-                st.warning("⚠️ Please enter PICA data")
+                st.warning("Please enter PICA data")
     
     with col2:
-        st.markdown("### 🔗 Useful Links")
-        st.markdown("""
-        - [RVK Online](https://rvk.uni-regensburg.de/)
-        - [K10plus Documentation](https://format.k10plus.de/)
-        - [RVK API Documentation](https://rvk.uni-regensburg.de/api/)
-        """)
-        
-        st.markdown("### ℹ️ Help")
-        with st.expander("PICA Format"):
-            st.markdown("""
-            **Important PICA Fields:**
-            - `4000`: Title
-            - `3000`: Author
-            - `1100`: Year
-            - `4030`: Publisher
-            - `4207`: Abstract
-            - `5090`: RVK Notation (will be overwritten)
-            """)
-        
-        with st.expander("RVK Hierarchical Classification"):
-            st.markdown("""
-            **Hierarchy-Aware Classification:**
-            - **Hauptgruppe (Main Group):** M = Political Science, Sociology
-            - **Untergruppe (Subgroup):** MN = Sociology  
-            - **Feingruppe (Fine Group):** MN 8300 = Migration
-            - **Key:** + Regional Key Germany
+        if st.session_state.results:
+            st.markdown("### Analysis Summary")
+            results = st.session_state.results
+            suggestions_count = len(results.get('suggestions', []))
+            confidence = results.get('confidence', 0)
             
-            **v1.0 Logic: Hierarchical Priority Search:**
-            1. **Identify Hauptgruppe(n)** from content (e.g., M, L).
-            2. **Search for Primary Keyword** within these Hauptgruppe contexts.
-            3. **Prioritize Regional Context:** Relevant Countries/Continents within the hierarchy.
-            4. **Display full hierarchy path** (e.g., LB: abc → LB 1-100: cde → LB 34: fg).
-            """)
+            st.markdown(f"""
+            <div class="metric-container">
+                <strong>Suggestions Found</strong><br>
+                <span style="font-size: 1.5rem; color: #495057;">{suggestions_count}</span>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.markdown(f"""
+            <div class="metric-container">
+                <strong>AI Confidence</strong><br>
+                <span style="font-size: 1.5rem; color: #495057;">{confidence}%</span>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            if suggestions_count > 0:
+                hauptgruppe_count = sum(1 for s in results['suggestions'] if s.get('hauptgruppe_match', False))
+                st.markdown(f"""
+                <div class="metric-container">
+                    <strong>Priority Matches</strong><br>
+                    <span style="font-size: 1.5rem; color: #495057;">{hauptgruppe_count}</span>
+                </div>
+                """, unsafe_allow_html=True)
     
     if st.session_state.results:
         results = st.session_state.results
         
         st.markdown("---")
-        st.markdown("## 📊 RVK Hierarchical Analysis Results")
+        st.markdown("## RVK Analysis Results")
         
         ai_rvk_prefixes = results.get('suggestedRVKPrefixes', [])
         ai_rvk_prefixes_display = ", ".join(ai_rvk_prefixes) if ai_rvk_prefixes else "None"
@@ -627,94 +664,77 @@ def main():
 
         st.markdown(f"""
         <div class="analysis-box">
-            <h3>🤖 AI Analysis ({results['apiUsed']['ai']})</h3>
-            <p><strong>Title:</strong> {results.get('title', 'N/A')}</p>
+            <h3>AI Analysis ({results['apiUsed']['ai']})</h3>
+            <p><strong>Title:</strong> {results.get('title', 'N/A')[:100]}{'...' if len(results.get('title', '')) > 100 else ''}</p>
             <p><strong>Author:</strong> {results.get('author', 'N/A')}</p>
-            <p><strong>Main Topic:</strong> {results.get('mainTopic', 'N/A')}</p>
-            <p><strong>Primary Keyword:</strong> {results.get('primaryKeyword', 'N/A')}</p>
-            <p><strong>Related German Concepts:</strong> {ai_related_concepts_display}</p>
-            <p><strong>Discipline:</strong> {results.get('discipline', 'N/A')}</p>
-            <p><strong>Confidence:</strong> {results.get('confidence', 'N/A')}%</p>
-            <p><strong>Suggested Search Terms:</strong> {', '.join(results.get('suggestedSearchTerms', []))}</p>
-            <p><strong>Suggested RVK Prefixes:</strong> {ai_rvk_prefixes_display}</p>
-            <p><strong>Relevant RVK Hierarchy Examples:</strong> {ai_relevant_examples_display}</p>
+            <p><strong>Topic:</strong> {results.get('mainTopic', 'N/A')} | <strong>Keyword:</strong> {results.get('primaryKeyword', 'N/A')}</p>
+            <p><strong>Discipline:</strong> {results.get('discipline', 'N/A')} | <strong>Confidence:</strong> {results.get('confidence', 'N/A')}%</p>
         </div>
         """, unsafe_allow_html=True)
         
-        st.markdown(f"### 🏗️ RVK Hierarchical Classification ({results['apiUsed']['rvk']})")
-        # --- GELÖSCHT: Die spezifische Logic-Info-Box ---
-        # st.info("🆕 **v1.0 Logic:** Priority search within identified Hauptgruppen (M, L) with regional fallback chain (Sachsen → Deutschland → Europa → Global). Results are ordered by relevance and hierarchical priority.")
-        # --- ENDE GELÖSCHT ---
+        # More details in expander
+        with st.expander("Full Analysis Details", expanded=False):
+            st.write(f"**Related German Concepts:** {ai_related_concepts_display}")
+            st.write(f"**Suggested Search Terms:** {', '.join(results.get('suggestedSearchTerms', []))}")
+            st.write(f"**Suggested RVK Prefixes:** {ai_rvk_prefixes_display}")
+            st.write(f"**Relevant RVK Hierarchy Examples:** {ai_relevant_examples_display}")
+        
+        st.markdown(f"### RVK Classification ({results['apiUsed']['rvk']})")
         
         # Display hierarchical suggestions with new logic
         classifier.display_rvk_hierarchical_suggestions(results)
         
         if results['suggestions']:
-            st.markdown("### 📤 Export")
-            col_exp1, col_exp2, col_exp3 = st.columns(3)
-            
-            with col_exp1:
-                st.button("💾 JSON Export", key="trigger_export_json")
-                if st.session_state.get("trigger_export_json"):
-                    export_data = {
-                        'timestamp': datetime.now().isoformat(),
-                        'analysis': results,
-                        'pica_data': pica_data,
-                        'version': '1.0' 
-                    }
-                    st.download_button(
-                        label="📥 Download JSON",
-                        data=json.dumps(export_data, indent=2, ensure_ascii=False),
-                        file_name=f"rvk-hierarchical-analysis-{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
-                        mime="application/json"
-                    )
-            
-            with col_exp2:
-                st.button("📊 CSV Export", key="trigger_export_csv")
-                if st.session_state.get("trigger_export_csv"):
-                    df = pd.DataFrame(results['suggestions'])
-                    csv = df.to_csv(index=False)
-                    st.download_button(
-                        label="📥 Download CSV",
-                        data=csv,
-                        file_name=f"rvk-hierarchical-suggestions-{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-                        mime="text/csv"
-                    )
-            
-            with col_exp3:
-                all_notations_string = ", ".join([s['notation'] for s in results['suggestions']])
-                st.text_input("All Notations (comma-separated):", value=all_notations_string, key="all_notations_string")
-                if st.button(f"📋 Copy All Notations", key=f"copy_all_notations"):
-                    st.code(all_notations_string, language='text')
-                    st.info(f"All notations copied!")
+            with st.expander("Export Options", expanded=False):
+                col_exp1, col_exp2, col_exp3 = st.columns(3)
+                
+                with col_exp1:
+                    if st.button("JSON", key="trigger_export_json"):
+                        export_data = {
+                            'timestamp': datetime.now().isoformat(),
+                            'analysis': results,
+                            'pica_data': pica_data,
+                            'version': '1.1' 
+                        }
+                        st.download_button(
+                            label="Download JSON",
+                            data=json.dumps(export_data, indent=2, ensure_ascii=False),
+                            file_name=f"rvk-analysis-{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+                            mime="application/json"
+                        )
+                
+                with col_exp2:
+                    if st.button("CSV", key="trigger_export_csv"):
+                        df = pd.DataFrame(results['suggestions'])
+                        csv = df.to_csv(index=False)
+                        st.download_button(
+                            label="Download CSV",
+                            data=csv,
+                            file_name=f"rvk-suggestions-{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                            mime="text/csv"
+                        )
+                
+                with col_exp3:
+                    all_notations_string = ", ".join([s['notation'] for s in results['suggestions']])
+                    if st.button("Copy All", key="copy_all_notations"):
+                        st.code(all_notations_string, language='text')
         
         else:
-            st.warning("⚠️ No matching RVK hierarchical classifications found.")
-            st.info("""
-            💡 **Suggestions for improvement:**
-            - **Enable RVK API:** Make sure the RVK API is enabled
-            - **Check API Status:** Use the test buttons in the sidebar
-            - **Add more metadata:** Include more detailed information in PICA data (especially in Title, Abstract, Subjects)
-            - **Optimize AI analysis:** Review AI-suggested keywords and main topic
-            """)
+            st.warning("No matching RVK classifications found.")
+            with st.expander("Suggestions", expanded=False):
+                st.write("- Enable RVK API in the sidebar")
+                st.write("- Check API Status using the test buttons") 
+                st.write("- Add more detailed information in PICA data")
+                st.write("- Review AI-suggested keywords and main topic")
     
-    st.markdown("---")
     st.markdown("""
-    <div style="text-align: center; color: #666; margin-top: 2rem;">
-        <p>🚀 <strong>RVK-PICA Classifier AI v1.0</strong> - With Hierarchical Priority Logic</p>
-        <p>
-            AI: {ai_status} | RVK: {rvk_status} | 
-            <a href="https://rvk.uni-regensburg.de/api/" target="_blank">RVK API</a> |
-            <a href="https://format.k10plus.de/" target="_blank">K10plus Format</a>
-        </p>
-        <p style="font-size: 0.8em; color: #999;">
-            🔒 All data processed securely – API keys stored locally only
+    <div class="footer-clean">
+        <p><strong><a href="https://github.com/thomasgerdes/RVK-PICA-Classifier-AI" target="_blank" style="color: #495057; text-decoration: none;">RVK-PICA Classifier AI v1.1</a></strong> - By <a href="https://github.com/thomasgerdes/RVK-PICA-Classifier-AI" target="_blank" style="color: #495057; text-decoration: none;">Thomas Gerdes</a></p>
+        <p style="font-size: 0.85rem; color: #868e96; margin-top: 1rem;">
+            All data processed securely – API keys stored locally only
         </p>
     </div>
-    """.format(
-        ai_status='OpenAI' if st.session_state.config['openai']['enabled'] else 'Local Analysis',
-        rvk_status='Hierarchical Priority Analysis' if st.session_state.config['rvk']['enabled'] else 'RVK API Disabled'
-    ), unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
